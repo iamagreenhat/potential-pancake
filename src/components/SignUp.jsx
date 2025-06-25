@@ -2,33 +2,36 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSession, signIn, signOut } from "next-auth/react"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useRouter } from 'next/navigation';
 
-export default function SignInModal() {
-  const router=useRouter()
+export default function SignUpModal() {
+  //  SHOW TOAST MESSAGE IF USER IS REGISTERED SUCCESSFULLY
+
+  const registerSuccess = () => {
+    toast.success("User resgistered successfully !", {
+      position: "top-right"
+    });}
+
+    // Show toast message if user email already exists
+  const emailExistMsg = () => {
+    toast.error("User Email already exists !", {
+      position: "top-right"
+    });}
   const [isOpen, setIsOpen] = useState(false);
-    const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState({ email: '', password: '', exists:'' });
-    const [loading,setLoading]=useState(false)
-
-
-    // invalid mesage
-     const errorMessage = () => {
-        toast.error("Invalid Credentials !", {
-          position: "top-right"
-        });}
-
+  const [loading,setLoading]=useState(false)
+  const [errors, setErrors] = useState({ email: '', password: '', exists:'' });
 
   const toggleModal = () => setIsOpen(!isOpen);
+
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
-   const handleSubmit = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = { email: '', password: '', exists:'' };
@@ -36,36 +39,38 @@ export default function SignInModal() {
     if (!validateEmail(email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    if(!password){
-      newErrors.password="Fill in your password"
-    }
 
-   
+    if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
 
     setErrors(newErrors);
 
     const hasError = Object.values(newErrors).some((msg) => msg !== '');
     if (!hasError) {
       setLoading(true)
-      // using the next auth method
-      const res=await signIn("credentials",{
-       email,
-       password,
-       redirect:false
+      console.log('Form is valid. Submitting:', { email, password });
+
+      // Example: send to backend here
+      const res = await fetch('/api/signUp', {
+
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
       })
-      console.log(res)
+
       if(res.ok){
         console.log(res)
         setLoading(false)
-        router.replace('/write')
-
-    
+        registerSuccess()
         // isOpen(false)
       }
       else{
         setLoading(false)
         console.log(res)
-        errorMessage()
+        emailExistMsg()
       }
 
       // Reset form or close modal
@@ -77,12 +82,12 @@ export default function SignInModal() {
 
   return (
     <>
-     <ToastContainer/>
+    <ToastContainer/>
       <button
         onClick={toggleModal}
         className="bg-emerald-950 text-white py-[10px] px-[15px] rounded-xl hover:bg-blue-700"
       >
-        Sign In
+        Sign Up
       </button>
 
       <AnimatePresence>
@@ -101,47 +106,59 @@ export default function SignInModal() {
             >
               <button
                 onClick={toggleModal}
-                className="absolute top-2 right-3 text-gray-600 hover:text-black text-xl"
+                className="absolute top-2 right-3 text-gray-600 hover:text-white text-xl"
               >
                 ×
               </button>
 
-              <h2 className="text-2xl font-bold mb-4">Sign In</h2>
+              <h2 className="text-2xl font-bold mb-4 text-white">Sign Up</h2>
               <form className="space-y-4" onSubmit={handleSubmit}>
+
+                
+                  {errors.exists && (
+                    <p className="text-red-500 text-sm mt-1">{errors.exists}</p>
+                  )}
+                
                 <div>
-                  <label className="block text-sm font-medium">Email</label>
+                  <label className="block text-sm font-medium text-white">Email</label>
                   <input
                     type="email"
                     className="w-full border px-3 py-2 rounded mt-1"
                     placeholder="you@example.com"
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    
                   />
-                   {errors.email && (
+                  {errors.email && (
                     <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                   )}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium">Password</label>
+                  <label className="block text-sm font-medium text-white">Password</label>
                   <input
                     type="password"
                     className="w-full border px-3 py-2 rounded mt-1"
                     placeholder="••••••••"
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    
                   />
-                   {errors.password && (
+                  {errors.password && (
                     <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                   )}
                 </div>
-                <button 
-                  disabled={loading ? true :false}
-                  type="submit"
-                  className={`w-full ${loading? 'bg-gray-600' : 'bg-blue-600'  } text-white py-2 rounded${loading ? " hover:bg-gray-500" : 'hover:bg-blue-400'} `}
 
-                 
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
                 >
-                 {loading ? "processing..." :"log in"}
+                 {loading ? "loading..." :"sign up"}
+                </button>
+
+                <button
+                  type="button"
+                  className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                >
+                  Sign up with Google
                 </button>
               </form>
             </motion.div>

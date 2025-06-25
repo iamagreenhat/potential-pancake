@@ -49,7 +49,7 @@ export default function Hero() {
     <div className="w-full mt-5 bg-blue-500 p-4 mx-30">
       <div className="flex gap-6 w-full overflow-hidden">
         {slides.map((slide) => (
-          <button className="px-2 text-sm w-auto rounded-lg bg-gray-700">
+          <button className="px-2 text-sm w-auto rounded-lg bg-gray-700" key={slide.text}>
             {slide.text}
           </button>
         ))}
