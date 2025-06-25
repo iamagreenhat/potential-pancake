@@ -14,8 +14,8 @@ export default function SignUpModal() {
     });}
 
     // Show toast message if user email already exists
-  const emailExistMsg = () => {
-    toast.error("User Email already exists !", {
+  const emailExistMsg = (msg) => {
+    toast.error(msg, {
       position: "top-right"
     });}
   const [isOpen, setIsOpen] = useState(false);
@@ -67,10 +67,16 @@ export default function SignUpModal() {
         registerSuccess()
         // isOpen(false)
       }
-      else{
+      else if(res.status===400){
         setLoading(false)
         console.log(res)
-        emailExistMsg()
+        emailExistMsg("User Email already exists !")
+      }
+
+      else if(res.status===500){
+        setLoading(false)
+        console.log(res)
+        emailExistMsg("Error occured, user not registered !")
       }
 
       // Reset form or close modal
